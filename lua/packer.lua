@@ -130,9 +130,6 @@ packer.init = function(user_config)
   config.pack_dir = join_paths(config.package_root, config.plugin_package)
   config.opt_dir = join_paths(config.pack_dir, 'opt')
   config.start_dir = join_paths(config.pack_dir, 'start')
-  if #vim.api.nvim_list_uis() == 0 then
-    config.display.non_interactive = true
-  end
 
   local plugin_utils = require_and_configure 'plugin_utils'
   plugin_utils.ensure_dirs()
@@ -440,7 +437,7 @@ packer.install = function(...)
       end)
       table.insert(tasks, 1, config.max_jobs and config.max_jobs or (#tasks - 1))
       log.debug 'Running tasks'
-      display_win:update_headline_message('installing ' .. #tasks - 2 .. ' / ' .. #tasks - 2 .. ' plugins')
+      display_win:update_headline_message(#tasks - 2 .. ' / ' .. #tasks - 2 .. ' install tasks')
       a.interruptible_wait_pool(unpack(tasks))
       local install_paths = {}
       for plugin_name, r in pairs(results.installs) do
@@ -536,7 +533,7 @@ packer.update = function(...)
       return not display.status.running
     end)
     table.insert(tasks, 1, config.max_jobs and config.max_jobs or (#tasks - 1))
-    display_win:update_headline_message('updating ' .. #tasks - 2 .. ' / ' .. #tasks - 2 .. ' plugins')
+    display_win:update_headline_message(#tasks - 2 .. ' / ' .. #tasks - 2 .. ' update tasks')
     log.debug 'Running tasks'
     a.interruptible_wait_pool(unpack(tasks))
     local install_paths = {}
@@ -627,7 +624,7 @@ packer.sync = function(...)
     end)
     table.insert(tasks, 1, config.max_jobs and config.max_jobs or (#tasks - 1))
     log.debug 'Running tasks'
-    display_win:update_headline_message('syncing ' .. #tasks - 2 .. ' / ' .. #tasks - 2 .. ' plugins')
+    display_win:update_headline_message(#tasks - 2 .. ' / ' .. #tasks - 2 .. ' sync tasks')
     a.interruptible_wait_pool(unpack(tasks))
     local install_paths = {}
     for plugin_name, r in pairs(results.installs) do
@@ -773,7 +770,7 @@ packer.compile = function(raw_args, move_plugins)
       vim.cmd('source ' .. output_path)
       for plugin_name, plugin_config in pairs(configs_to_run) do
         for _, config_line in ipairs(plugin_config) do
-          local success, err = pcall(loadstring(config_line))
+          local success, err = pcall(loadstring(config_line), plugin_name, _G.packer_plugins[plugin_name])
           if not success then
             log.error('Error running config for ' .. plugin_name .. ': ' .. vim.inspect(err))
           end

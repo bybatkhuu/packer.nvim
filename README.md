@@ -12,12 +12,11 @@ Have a problem or idea? Make an [issue](https://github.com/wbthomason/packer.nvi
 **Packer is built on native packages. You may wish to read `:h packages` before continuing**
 
 ## Table of Contents
-1. [Notices](#notices)
-2. [Features](#features)
-3. [Requirements](#requirements)
-4. [Quickstart](#quickstart)
-5. [Bootstrapping](#bootstrapping)
-6. [Usage](#usage)
+1. [Features](#features)
+2. [Requirements](#requirements)
+3. [Quickstart](#quickstart)
+4. [Bootstrapping](#bootstrapping)
+5. [Usage](#usage)
     1. [The startup function](#the-startup-function)
     2. [Custom Initialization](#custom-initialization)
     3. [Specifying Plugins](#specifying-plugins)
@@ -26,24 +25,10 @@ Have a problem or idea? Make an [issue](https://github.com/wbthomason/packer.nvi
     6. [Compiling Lazy-Loaders](#compiling-lazy-loaders)
 	7. [User autocommands](#user-autocommands)
 	8. [Using a floating window](#using-a-floating-window)
-7. [Profiling](#profiling)
-8. [Debugging](#debugging)
-9. [Status](#status)
-10. [Contributors](#contributors)
-
-## Notices
-- **2021-07-31:** If you're on macOS, note that building Neovim with the version of `luv` from `homebrew` [will cause any `packer` command to crash](https://github.com/wbthomason/packer.nvim/issues/496#issuecomment-890371022). More about this issue at [neovim/neovim#15054](https://github.com/neovim/neovim/issues/15054).
-- **2021-07-28:** `packer` will now highlight commits/plugin names with potentially breaking changes
-  (determined by looking for `breaking change` or `breaking_change`, case insensitive, in the update
-  commit bodies and headers) as `WarningMsg` in the status window.
-- **2021-06-06**: Your Neovim must include https://github.com/neovim/neovim/pull/14659; `packer` uses the `noautocmd` key.
-- **2021-04-19**: `packer` now provides built-in profiling for your config via the `packer_compiled`
-  file. Take a look at [the docs](#profiling) for more information!
-- **2021-02-18**: Having trouble with Luarocks on macOS? See [this issue](https://github.com/wbthomason/packer.nvim/issues/180).
-- **2021-01-19**: Basic Luarocks support has landed! Use the `rocks` key with a string or table to specify packages to install.
-- **2020-12-10**: The `disable_commands` configuration flag now affects non-`startup` use as well. This means that, by default, `packer` will create commands for basic operations for you.
-- **2020-11-13**: There is now a default implementation for a floating window `open_fn` in `packer.util`.
-- **2020-09-04:** Due to changes to the Neovim `extmark` api (see: https://github.com/neovim/neovim/commit/3853276d9cacc99a2698117e904475dbf7033383), users will need to update to a version of Neovim **after** the aforementioned PR was merged. There are currently shims around the changed functions which should maintain support for earlier versions of Neovim, but these are intended to be temporary and will be removed by **2020-10-04**. Therefore Packer will not work with Neovim v0.4.4, which was released before the `extmark` change.
+6. [Profiling](#profiling)
+7. [Debugging](#debugging)
+8. [Compatibility and known issues](#compatibility-and-known-issues)
+9. [Contributors](#contributors)
 
 ## Features
 - Declarative plugin specification
@@ -60,8 +45,7 @@ Have a problem or idea? Make an [issue](https://github.com/wbthomason/packer.nvi
 - Support for local plugins
 
 ## Requirements
-- **You need to be running Neovim v0.5.0+**; `packer` makes use of extmarks and other newly-added Neovim
-  features.
+- You need to be running **Neovim v0.5.0+**
 - If you are on Windows 10, you need developer mode enabled in order to use local plugins (creating
   symbolic links requires admin privileges on Windows - credit to @TimUntersberger for this note)
 
@@ -97,7 +81,7 @@ return require('packer').startup(function(use)
   use 'wbthomason/packer.nvim'
 
   -- Simple plugins can be specified as strings
-  use '9mm/vim-closer'
+  use 'rstacruz/vim-closer'
 
   -- Lazy loading:
   -- Load on specific commands
@@ -405,7 +389,8 @@ use {
   rocks = string or list,      -- Specifies Luarocks dependencies for the plugin
   config = string or function, -- Specifies code to run after this plugin is loaded.
   -- The setup key implies opt = true
-  setup = string or function,  -- Specifies code to run before this plugin is loaded.
+  setup = string or function,  -- Specifies code to run before this plugin is loaded. The code is ran even if
+                               -- the plugin is waiting for other conditions (ft, cond...) to be met.
   -- The following keys all imply lazy-loading and imply opt = true
   cmd = string or list,        -- Specifies commands which load this plugin. Can be an autocmd pattern.
   ft = string or list,         -- Specifies filetypes which load this plugin.
@@ -415,7 +400,8 @@ use {
   cond = string, function, or list of strings/functions,   -- Specifies a conditional test to load this plugin
   module = string or list      -- Specifies Lua module names for require. When requiring a string which starts
                                -- with one of these module names, the plugin will be loaded.
-  module_pattern = string/list -- Specifies Lua pattern of Lua module names for require. When requiring a string which matches one of these patterns, the plugin will be loaded.
+  module_pattern = string/list -- Specifies Lua pattern of Lua module names for require. When
+                               -- requiring a string which matches one of these patterns, the plugin will be loaded.
 }
 ```
 
@@ -642,38 +628,49 @@ restart your neovim and run `PackerProfile`. This will open a window with the ou
 `packer.nvim` logs to `stdpath(cache)/packer.nvim.log`. Looking at this file is usually a good start
 if something isn't working as expected.
 
-## Status
-**tl;dr**: Beta. Things seem to work and most features are complete, but certainly not every edge
-case has been tested. People willing to give it a try and report bugs/errors are very welcome!
+## Compatibility and known issues
 
-- Basic package management works (i.e. installation, updating, cleaning, start/opt plugins,
-  displaying results)
-- Automatic generation of lazy-loading code works
-- More testing is needed
-- The code is messy and needs more cleanup and refactoring
-
-## Current work-in-progress
-- Playing with ideas to make manual compilation less necessary
+- **2021-07-31:** If you're on macOS, note that building Neovim with the version of `luv` from `homebrew` [will cause any `packer` command to crash](https://github.com/wbthomason/packer.nvim/issues/496#issuecomment-890371022). More about this issue at [neovim/neovim#15054](https://github.com/neovim/neovim/issues/15054).
+- **2021-07-28:** `packer` will now highlight commits/plugin names with potentially breaking changes
+  (determined by looking for `breaking change` or `breaking_change`, case insensitive, in the update
+  commit bodies and headers) as `WarningMsg` in the status window.
+- **2021-06-06**: Your Neovim must include https://github.com/neovim/neovim/pull/14659; `packer` uses the `noautocmd` key.
+- **2021-04-19**: `packer` now provides built-in profiling for your config via the `packer_compiled`
+  file. Take a look at [the docs](#profiling) for more information!
+- **2021-02-18**: Having trouble with Luarocks on macOS? See [this issue](https://github.com/wbthomason/packer.nvim/issues/180).
+- **2021-01-19**: Basic Luarocks support has landed! Use the `rocks` key with a string or table to specify packages to install.
+- **2020-12-10**: The `disable_commands` configuration flag now affects non-`startup` use as well. This means that, by default, `packer` will create commands for basic operations for you.
+- **2020-11-13**: There is now a default implementation for a floating window `open_fn` in `packer.util`.
+- **2020-09-04:** Due to changes to the Neovim `extmark` api (see: https://github.com/neovim/neovim/commit/3853276d9cacc99a2698117e904475dbf7033383), users will need to update to a version of Neovim **after** the aforementioned PR was merged. There are currently shims around the changed functions which should maintain support for earlier versions of Neovim, but these are intended to be temporary and will be removed by **2020-10-04**. Therefore Packer will not work with Neovim v0.4.4, which was released before the `extmark` change.
 
 ## Contributors
 Many thanks to those who have contributed to the project! PRs and issues are always welcome. This
 list is infrequently updated; please feel free to bug me if you're not listed here and you would
 like to be.
 
-- @akinsho
-- @nanotee
-- @weilbith
-- @Iron-E
-- @tjdevries
-- @numToStr
-- @fsouza
-- @gbrlsnchs
-- @lewis6991
-- @TimUntersberger
-- @bfredl
-- @sunjon
-- @gwerbin
-- @shadmansaleh
-- @ur4ltz
-- @EdenEast
-- @khuedoan
+- [@akinsho](https://github.com/akinsho)
+- [@nanotee](https://github.com/nanotee)
+- [@weilbith](https://github.com/weilbith)
+- [@Iron-E](https://github.com/Iron-E)
+- [@tjdevries](https://github.com/tjdevries)
+- [@numToStr](https://github.com/numToStr)
+- [@fsouza](https://github.com/fsouza)
+- [@gbrlsnchs](https://github.com/gbrlsnchs)
+- [@lewis6991](https://github.com/lewis6991)
+- [@TimUntersberger](https://github.com/TimUntersberger)
+- [@bfredl](https://github.com/bfredl)
+- [@sunjon](https://github.com/sunjon)
+- [@gwerbin](https://github.com/gwerbin)
+- [@shadmansaleh](https://github.com/shadmansaleh)
+- [@ur4ltz](https://github.com/ur4ltz)
+- [@EdenEast](https://github.com/EdenEast)
+- [@khuedoan](https://github.com/khuedoan)
+- [@kevinhwang91](https://github.com/kevinhwang91)
+- [@runiq](https://github.com/runiq)
+- [@n3wborn](https://github.com/n3wborn)
+- [@deathlyfrantic](https://github.com/deathlyfrantic)
+- [@doctoromer](https://github.com/doctoromer)
+- [@elianiva](https://github.com/elianiva)
+- [@dundargoc](https://github.com/dundargoc)
+- [@jdelkins](https://github.com/jdelkins)
+- [@dsully](https://github.com/dsully)
